@@ -1,39 +1,51 @@
 pipeline {
- environment {
- imagename = “madhusudhanahc/jenkins-docker”
- registryCredential = ‘madhusudhanahc-docckerhub’
- dockerImage = ‘’
- }
- agent any
- stages {
- stage(‘Cloning Git’) {
- steps {
- git([url: ‘https://github.com/MadhusudhanaHC/CI-CD-jenkins-to-build-docker.git', branch: ‘madhu’])
- }
- }
- stage(‘Building image’) {
- steps{
- script {
- dockerImage = docker.build imagename
- }
- }
- }
- stage(‘Running image’) {
- steps{
- script {
- sh “docker run ${imagename}:latest”
- }
- }
- }
- stage(‘Deploy Image’) {
- steps{
- script {
- docker.withRegistry( ‘’, registryCredential ) {
- dockerImage.push(“$BUILD_NUMBER”)
- dockerImage.push(‘latest’)
- }
- }
- }
- }
- }
+    agent any
+
+    tools {
+        // Install the Maven version configured as "M2_HOME" and add it to the path.
+        maven "M2_HOME"
+    }
+
+    stages {
+        stage('Checkout My GitHUb repository') {
+            steps {
+                // Get some code from a GitHub repository
+                git 'https://github.com/niladrimondal/DevOpsClassCodes.git'
+            }
+            
+        }
+        
+        stage('Compile My code') {
+            steps {
+                // To run Maven on a Windows agent, use
+                bat "mvn compile"
+            }
+            
+        }
+        
+        stage('Run Unit Test Cases') {
+            steps {
+                // To run Maven on a Windows agent, use
+                bat "mvn test"
+            }
+            
+        }
+        
+        stage('Run The Code Quality QA') {
+            steps {
+                // To run Maven on a Windows agent, use
+                bat "mvn pmd:pmd"
+            }
+            
+        }
+        
+        stage('Package the code as a War file') {
+            steps {
+                // To run Maven on a Windows agent, use
+                bat "mvn package"
+            }
+            
+        }
+    }
 }
+
